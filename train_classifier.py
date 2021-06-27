@@ -3,6 +3,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from classifier import model
 
 if __name__ == '__main__':
+    root_path = "D:/Dataset/image/covid19"
     batch_size, epochs = 256, 100
 
     generator = ImageDataGenerator(
@@ -14,13 +15,12 @@ if __name__ == '__main__':
         zoom_range=.2,
         rescale=1. / 255.)
     train_gen = generator.flow_from_directory(
-        directory="",
+        directory=root_path + "/imgs/train",
         color_mode="grayscale",
         batch_size=batch_size)
 
     classifier = model()
     classifier.fit(
-
-        batch_size=batch_size,
+        x=train_gen,
         epochs=epochs,
         validation_split=.2)
