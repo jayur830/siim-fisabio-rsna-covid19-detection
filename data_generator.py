@@ -8,13 +8,12 @@ from glob import glob
 from copy import copy
 from concurrent.futures import ThreadPoolExecutor
 
-from utils import convert_to_yolo
-
 
 class YOLODataGenerator(tf.keras.utils.Sequence):
     """
     :param x_paths
     :param y_paths
+    :param anchors
     :param target_size: (width, height)
     :param grid_ratio: (grid_width_ratio, grid_height_ratio)
     :param batch_size
@@ -23,6 +22,7 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
     def __init__(self,
                  x_paths: str,
                  y_paths: str,
+                 anchors: [[float]],
                  num_classes: int,
                  target_size: (int, int) = (224, 224),
                  grid_ratio: (int, int) = (28, 28),
@@ -32,6 +32,7 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
         self.__x_path_ext, self.__y_path_ext = x_paths[x_paths.rindex(".") + 1:], y_paths[y_paths.rindex(".") + 1:]
         self.__x_path_list, self.__y_path_list = glob(x_paths), glob(y_paths)
         self.__x_paths, self.__y_paths = None, None
+        self.__anchors = anchors
         self.__num_classes = num_classes
         self.__target_width, self.__target_height = target_size
         self.__grid_ratio = np.asarray(grid_ratio)
@@ -82,29 +83,22 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
             label_tensor = np.zeros(shape=(self.__grid_ratio[1], self.__grid_ratio[0], 5 + self.__num_classes))
 
             for bbox in bboxes:
-                class_num, x, y, w, h = bbox
-                class_num, x, y, w, h = int(class_num), float(x), float(y), float(w), float(h)
-                grid_x, grid_y, x, y, w, h = convert_to_yolo(self.__grid_ratio[0], self.__grid_ratio[1], x, y, w, h)
-                label_tensor[grid_y, grid_x, 0] = x
-                label_tensor[grid_y, grid_x, 1] = y
-                label_tensor[grid_y, grid_x, 2] = w
-                label_tensor[grid_y, grid_x, 3] = h
-                label_tensor[grid_y, grid_x, 4] = 1.
-                label_tensor[grid_y, grid_x, 5 + class_num] = 1.
+                num_classes, x, y, w, h = bbox
+                num_classes, x, y, w, h = int(num_classes), float(x), float(y), float(w), float(h)
+                grid_x, grid_y, x, y, w, h = self.__convert_to_yolo(self.__grid_ratio[0], self.__grid_ratio[1], x, y, w, h)
+
+                for n in range(len(self.__anchors)):
+                    label_tensor[grid_y, grid_x, n * 5] = x
+                    label_tensor[grid_y, grid_x, n * 5 + 1] = y
+                    label_tensor[grid_y, grid_x, n * 5 + 2] = w / (self.__anchors[n][0] / self.__grid_ratio[0])
+                    label_tensor[grid_y, grid_x, n * 5 + 3] = h / (self.__anchors[n][1] / self.__grid_ratio[1])
+                    label_tensor[grid_y, grid_x, n * 5 + 4] = 1.
+
+                label_tensor[grid_y, grid_x, 5 * len(self.__anchors) + num_classes] = 1.
 
             batch_y.append(label_tensor)
 
-
-if __name__ == '__main__':
-    with open("E:/Dataset/image/coco/classes.txt", "r") as reader:
-        classes = [line[:-1] for line in reader.readlines()]
-    yolo_data_generator = YOLODataGenerator(
-        x_paths="E:/Dataset/image/coco/train2017/*.jpg",
-        y_paths="E:/Dataset/image/coco/train2017/*.txt",
-        num_classes=len(classes),
-        target_size=(416, 416),
-        grid_ratio=(52, 52),
-        batch_size=256)
-
-    x, y = yolo_data_generator[0]
-    print(x.shape, y.shape)
+    def __convert_to_yolo(self, grid_width: int, grid_height: int, x: float, y: float, w: float, h: float):
+        grid_x, grid_y = int(x * grid_width), int(y * grid_height)
+        x, y = x * grid_width - grid_x, y * grid_height - grid_y
+        return grid_x, grid_y, x, y, w, h

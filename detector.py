@@ -1,9 +1,10 @@
 import tensorflow as tf
 
 from yolo_loss import YOLOLoss
+from yolo_output_layer import YOLOOutput
 
 
-def model(anchors):
+def model(anchors, num_classes):
     # (416, 416, 1)
     input_layer = tf.keras.layers.Input(shape=(416, 416, 1))
     # (416, 416, 1) -> (208, 208, 8)
@@ -56,11 +57,12 @@ def model(anchors):
         use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
-    # (13, 13, 128) -> (13, 13, 5)
+    # (13, 13, 128) -> (13, 13, 5 * anchors + num_classes)
     x = tf.keras.layers.Conv2D(
-        filters=5,
+        filters=5 * len(anchors) + num_classes,
         kernel_size=1,
         kernel_initializer="he_normal")(x)
+    x = YOLOOutput(num_anchors=len(anchors))(x)
 
     m = tf.keras.models.Model(input_layer, x)
     m.compile(
