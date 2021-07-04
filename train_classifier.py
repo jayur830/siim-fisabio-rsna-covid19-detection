@@ -19,6 +19,13 @@ if __name__ == '__main__':
     classifier = model()
     classifier.fit(
         x=train_gen,
-        epochs=epochs)
+        epochs=epochs,
+        callbacks=[
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath="./classification_checkpoint/classifier-{epoch:02d}-{val_loss:.5f}.h5",
+                monitor="val_loss",
+                save_best_only=True,
+                mode="min")
+        ])
 
     classifier.save(filepath="./classifier.h5", include_optimizer=False)

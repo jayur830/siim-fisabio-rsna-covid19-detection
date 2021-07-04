@@ -74,7 +74,7 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
             src=img,
             dsize=(self.__target_width, self.__target_height),
             interpolation=cv2.INTER_AREA) / 255.
-        batch_x.append(img)
+        batch_x.append(img.reshape(img.shape + (1,)) if self.__color == "grayscale" else img)
 
         # Create bounding box labels for YOLO
         path = x_path[:x_path.index(self.__x_path_ext) - 1]
@@ -98,7 +98,8 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
 
             batch_y.append(label_tensor)
 
-    def __convert_to_yolo(self, grid_width: int, grid_height: int, x: float, y: float, w: float, h: float):
+    @staticmethod
+    def __convert_to_yolo(grid_width: int, grid_height: int, x: float, y: float, w: float, h: float):
         grid_x, grid_y = int(x * grid_width), int(y * grid_height)
         x, y = x * grid_width - grid_x, y * grid_height - grid_y
         return grid_x, grid_y, x, y, w, h
