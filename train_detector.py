@@ -1,9 +1,12 @@
 from commons import root_path, image_classes, anchors, target_size, grid_ratio
 from data_generator import YOLODataGenerator
 from detector import model
+from utils import gpu_init
 
 if __name__ == '__main__':
-    batch_size, epochs = 256, 100
+    gpu_init()
+
+    batch_size, epochs = 2, 100
 
     train_gen = YOLODataGenerator(
         x_paths=f"{root_path}/detection/*.jpg",
@@ -17,7 +20,6 @@ if __name__ == '__main__':
     detector = model(anchors, len(image_classes))
     detector.fit(
         x=train_gen,
-        epochs=epochs,
-        validation_split=.2)
+        epochs=epochs)
 
     detector.save(filepath="./detector.h5", include_optimizer=False)

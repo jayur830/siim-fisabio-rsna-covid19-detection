@@ -1,4 +1,9 @@
+import os
 import numpy as np
+
+
+def gpu_init():
+    os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
 def convert_to_yolo(grid_width: int, grid_height: int, x: float, y: float, w: float, h: float):

@@ -80,7 +80,7 @@ class YOLODataGenerator(tf.keras.utils.Sequence):
         path = x_path[:x_path.index(self.__x_path_ext) - 1]
         with open(path + "." + self.__y_path_ext, "r") as label_reader:
             bboxes = [label_filename[:-1].split(" ") for label_filename in label_reader.readlines()]
-            label_tensor = np.zeros(shape=(self.__grid_ratio[1], self.__grid_ratio[0], 5 + self.__num_classes))
+            label_tensor = np.zeros(shape=(self.__grid_ratio[1], self.__grid_ratio[0], 5 * len(self.__anchors) + self.__num_classes))
 
             for bbox in bboxes:
                 num_classes, x, y, w, h = bbox

@@ -17,6 +17,7 @@ class YOLOOutput(tf.keras.layers.Layer):
         })
         return config
 
+    @tf.autograph.experimental.do_not_convert
     def call(self, inputs, **kwargs):
         concat_x = []
         for n in range(self.__num_anchors):

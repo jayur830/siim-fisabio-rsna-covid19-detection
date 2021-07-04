@@ -66,7 +66,7 @@ def model(anchors, num_classes):
 
     m = tf.keras.models.Model(input_layer, x)
     m.compile(
-        optimizer=tf.optimizers.Adam(learning_rate=1e-2),
+        optimizer=tf.optimizers.Adam(learning_rate=1e-3),
         loss=YOLOLoss(anchors))
     m.summary()
 

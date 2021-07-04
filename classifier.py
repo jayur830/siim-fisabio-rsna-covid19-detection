@@ -1,10 +1,12 @@
 import tensorflow as tf
 
+from commons import target_size
+
 
 def model():
-    # (256, 256, 1)
-    input_layer = tf.keras.layers.Input(shape=(256, 256, 1))
-    # (256, 256, 1) -> (128, 128, 8)
+    # (416, 416, 1)
+    input_layer = tf.keras.layers.Input(shape=target_size + (1,))
+    # (416, 416, 1) -> (208, 208, 8)
     x = tf.keras.layers.Conv2D(
         filters=8,
         kernel_size=3,
@@ -14,7 +16,7 @@ def model():
         use_bias=False)(input_layer)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
-    # (128, 128, 8) -> (64, 64, 16)
+    # (208, 208, 8) -> (104, 104, 16)
     x = tf.keras.layers.Conv2D(
         filters=16,
         kernel_size=3,
@@ -24,7 +26,7 @@ def model():
         use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
-    # (64, 64, 16) -> (32, 32, 32)
+    # (104, 104, 16) -> (52, 52, 32)
     x = tf.keras.layers.Conv2D(
         filters=32,
         kernel_size=3,
@@ -34,7 +36,7 @@ def model():
         use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
-    # (32, 32, 32) -> (16, 16, 64)
+    # (52, 52, 32) -> (26, 26, 64)
     x = tf.keras.layers.Conv2D(
         filters=64,
         kernel_size=3,
@@ -44,7 +46,7 @@ def model():
         use_bias=False)(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alpha=1e-2)(x)
-    # (16, 16, 64) -> (8, 8, 128)
+    # (26, 26, 64) -> (13, 13, 128)
     x = tf.keras.layers.Conv2D(
         filters=128,
         kernel_size=3,

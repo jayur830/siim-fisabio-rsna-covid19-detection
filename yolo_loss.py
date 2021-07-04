@@ -68,6 +68,7 @@ class YOLOLoss(tf.keras.losses.Loss):
         self.__lambda_coord = lambda_coord
         self.__lambda_noobj = lambda_noobj
 
+    @tf.autograph.experimental.do_not_convert
     def call(self, y_true, y_pred):
         y_pred = convert_to_tensor_v2(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
@@ -88,7 +89,6 @@ class YOLOLoss(tf.keras.losses.Loss):
             xywh_loss += xy_loss + wh_loss
 
         return xywh_loss
-        # return 0
 
     def __confidence_loss(self, y_true: tf.Tensor, y_pred: tf.Tensor):
         confidence_loss = 0
